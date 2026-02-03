@@ -34,7 +34,14 @@ jobs:
       - name: Build & Push Image
         env:
           DOCKER_BUILDKIT: 0
-        run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app && docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
+          IMAGE_NAME: aks-terraform-app
+          ACR: ${{ secrets.ACR_LOGIN_SERVER }}
+        run: |
+          TAG="$ACR/$IMAGE_NAME:latest"
+          echo "Building image $TAG"
+          docker build -t $TAG ./app
+          docker push $TAG
+
 
       - name: Set AKS context
         uses: azure/aks-set-context@v3
