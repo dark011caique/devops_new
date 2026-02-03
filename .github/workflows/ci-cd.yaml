@@ -26,8 +26,9 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build & Push
+        working-directory: app
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest .
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
 
       - name: AKS Context
