@@ -26,7 +26,10 @@ jobs:
 
       - name: Build & Push
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app
+          docker build \
+            -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest \
+            ./app
+
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
 
       - name: AKS Context
