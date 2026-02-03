@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aks-terraform-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aks-terraform-app
+  template:
+    metadata:
+      labels:
+        app: aks-terraform-app
+    spec:
+      containers:
+        - name: app
+          image: ACR_LOGIN_SERVER/aks-terraform-app:latest
+          ports:
+            - containerPort: 3000
