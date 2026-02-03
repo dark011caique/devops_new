@@ -29,11 +29,6 @@ jobs:
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
 
-      - name: Build & Push
-        run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
-
       - name: AKS Context
         uses: azure/aks-set-context@v3
         with:
