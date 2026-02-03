@@ -10,14 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout do código (OBRIGATÓRIO)
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Debug – garantir que o código existe
+      - name: Debug root directory
+        run: |
+          echo "PWD:"
+          pwd
+          echo "ROOT FILES:"
+          ls -la
+
+      - name: Debug app directory
+        run: |
+          echo "APP FILES:"
+          ls -la app
+
+      # 3️⃣ Login no Azure
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # 4️⃣ Login no ACR
       - name: Login ACR
         uses: azure/docker-login@v1
         with:
@@ -25,18 +41,26 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      # 5️⃣ Build e Push da imagem (FORÇANDO docker clássico)
       - name: Build & Push Image
         working-directory: app
+        env:
+          DOCKER_BUILDKIT: 0
         run: |
+          docker version
+          docker info
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest .
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
 
-      - name: AKS Context
+      # 6️⃣ Setar contexto do AKS
+      - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
           resource-group: rg-aks-terraform-lab
           cluster-name: aks-terraform-lab
 
+      # 7️⃣ Deploy no Kubernetes
       - name: Deploy to AKS
         run: |
           kubectl apply -f k8s/
+          kubectl rollout status deployment/aks-terraform-app
