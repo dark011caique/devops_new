@@ -2,7 +2,8 @@ name: CI-CD AKS Terraform
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -20,26 +21,14 @@ jobs:
       - name: Login ACR
         uses: azure/docker-login@v1
         with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}   # ex.: meuacr.azurecr.io
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build & Push image
-        env:
-          IMAGE: ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
+      - name: Build & Push
         run: |
-          echo "Listando conteúdo do repositório:"
-          ls -la
-          echo "Validando pasta app e Dockerfile:"
-          test -d app || { echo "ERRO: pasta ./app não encontrada"; exit 1; }
-          test -f app/Dockerfile || { echo "ERRO: app/Dockerfile não encontrado"; exit 1; }
-
-          # Build e push em um único comando (buildx)
-          docker buildx build \
-            --file app/Dockerfile \
-            --tag "$IMAGE" \
-            --push \
-            app
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
 
       - name: AKS Context
         uses: azure/aks-set-context@v3
@@ -47,21 +36,7 @@ jobs:
           resource-group: rg-aks-terraform-lab
           cluster-name: aks-terraform-lab
 
-      # (Opcional) Garante que o AKS pode puxar do ACR via RBAC
-      # Execute apenas uma vez fora do pipeline OU deixe aqui se rodar sempre:
-      # - name: Attach ACR to AKS (RBAC-based pull)
-      #   run: |
-      #     az aks update -n aks-terraform-lab -g rg-aks-terraform-lab --attach-acr ${{ secrets.ACR_NAME }}
-
-      - name: Render manifests e Deploy
-        env:
-          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+      - name: Deploy
         run: |
-          # Renderiza o host do ACR no deployment
-          sed -i "s|ACR_LOGIN_SERVER|${ACR_LOGIN_SERVER}|g" k8s/deployment.yaml
-
-          echo "Aplicando manifests:"
+          sed -i "s|ACR_LOGIN_SERVER|${{ secrets.ACR_LOGIN_SERVER }}|g" k8s/deployment.yaml
           kubectl apply -f k8s/
-
-          echo "Mostrando status:"
-          kubectl get deploy,po,svc -o wide
