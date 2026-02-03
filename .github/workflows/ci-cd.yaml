@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Azure Login
@@ -27,10 +27,7 @@ jobs:
 
       - name: Build & Push
         run: |
-          docker build \
-            -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest \
-            ./app
-
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
 
       - name: AKS Context
