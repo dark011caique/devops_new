@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: app
-          image: ACR_LOGIN_SERVER/aks-terraform-app:latest
+          image: d4ar011.azurecr.io/aks-terraform-app:latest
           ports:
             - containerPort: 3000

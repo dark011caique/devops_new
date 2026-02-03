@@ -25,7 +25,7 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build & Push
+      - name: Build & Push Image
         working-directory: app
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest .
@@ -37,7 +37,6 @@ jobs:
           resource-group: rg-aks-terraform-lab
           cluster-name: aks-terraform-lab
 
-      - name: Deploy
+      - name: Deploy to AKS
         run: |
-          sed -i "s|ACR_LOGIN_SERVER|${{ secrets.ACR_LOGIN_SERVER }}|g" k8s/deployment.yaml
           kubectl apply -f k8s/
