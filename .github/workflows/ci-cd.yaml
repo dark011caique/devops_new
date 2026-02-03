@@ -1,0 +1,39 @@
+name: CI-CD AKS Terraform
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login ACR
+        run: |
+          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_LOGIN_SERVER }} \
+            -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+      - name: Build & Push
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest ./app
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/aks-terraform-app:latest
+
+      - name: AKS Context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: rg-aks-terraform-lab
+          cluster-name: aks-terraform-lab
+
+      - name: Deploy
+        run: |
+          sed -i "s|ACR_LOGIN_SERVER|${{ secrets.ACR_LOGIN_SERVER }}|g" k8s/deployment.yaml
+          kubectl apply -f k8s/
