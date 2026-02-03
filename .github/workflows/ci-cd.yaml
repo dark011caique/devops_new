@@ -34,11 +34,11 @@ jobs:
       - name: Build & Push Image
         env:
           DOCKER_BUILDKIT: 0
-          ACR: ${{ secrets.ACR_LOGIN_SERVER }}
         run: |
           set -eux
-          docker build ./app -t "$ACR/aks-terraform-app:latest"
-          docker push "$ACR/aks-terraform-app:latest"
+          docker build ./app -t d4ar011.azurecr.io/aks-terraform-app:latest
+          docker push d4ar011.azurecr.io/aks-terraform-app:latest
+
 
 
       - name: Set AKS context
