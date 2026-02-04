@@ -10,42 +10,60 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug
-        run: |
-          pwd
-          ls -la
-          ls -la app
-
+      # 2️⃣ Azure Login (vale para Terraform, Docker e kubectl)
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # 3️⃣ Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      # 4️⃣ Terraform Init
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      # 5️⃣ Terraform Plan
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+
+      # 6️⃣ Terraform Apply (auto)
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
+
+      # 7️⃣ Login no ACR
       - name: Login ACR
         uses: azure/docker-login@v1
         with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          login-server: d4ar011.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      # 8️⃣ Build & Push da imagem
       - name: Build & Push Image
         env:
           DOCKER_BUILDKIT: 0
         run: |
-          set -eux
           docker build ./app -t d4ar011.azurecr.io/aks-terraform-app:latest
           docker push d4ar011.azurecr.io/aks-terraform-app:latest
 
-
-
+      # 9️⃣ Set contexto AKS
       - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
           resource-group: rg-aks-terraform-lab
           cluster-name: aks-terraform-lab
 
+      # 🔟 Deploy no Kubernetes
       - name: Deploy to AKS
         run: kubectl apply -f k8s/

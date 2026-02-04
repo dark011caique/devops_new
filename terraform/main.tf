@@ -1,8 +1,9 @@
+#Criação de resource groupe
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
 }
-
+# Criação de container registre
 resource "azurerm_container_registry" "acr" {
   name                = var.acr_name
   resource_group_name = azurerm_resource_group.rg.name
@@ -10,7 +11,7 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Basic"
   admin_enabled       = true
 }
-
+# Criação de aks
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.aks_name
   location            = azurerm_resource_group.rg.location
@@ -25,7 +26,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   identity { type = "SystemAssigned" }
 }
-
+# Pull do ACR 
 resource "azurerm_role_assignment" "aks_acr_pull" {
   principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
   role_definition_name = "AcrPull"
